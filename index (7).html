@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>윤지유경데이 텔레파시 특집</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF6E3; --card:#FFFFFF; --ink:#1E1A16; --sub:#6B6258; --line:#1E1A16;
+    --accent:#FF5A1F; --yellow:#FFD23F; --green:#21A86B; --blue:#2E6BFF; --soft:#F3EAD6;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans KR',system-ui,sans-serif;}
+  body{min-height:100vh}
+  #app{max-width:480px;margin:0 auto;padding:0 16px 96px}
+  h1,h2,h3,.disp{font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:-.5px;margin:0}
+  h1{font-size:34px;line-height:1.1}
+  h2{font-size:26px;line-height:1.15}
+  h3{font-size:20px}
+  p{line-height:1.6;margin:8px 0}
+  .sub{color:var(--sub);font-size:14px}
+  header.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 0 10px;border-bottom:2px solid var(--line);margin:0 -16px 16px;padding-left:16px;padding-right:16px}
+  .toprow{display:flex;align-items:center;gap:8px}
+  .toprow .ttl{font-family:'Black Han Sans';font-size:18px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .iconbtn{border:2px solid var(--line);background:#fff;border-radius:10px;width:38px;height:38px;font-size:18px;display:grid;place-items:center;cursor:pointer}
+  .chips{display:flex;gap:6px;margin-top:10px}
+  .chip{flex:1;text-align:center;font-size:12px;font-weight:700;padding:6px 4px;border:2px solid var(--line);border-radius:999px;background:#fff;color:var(--sub)}
+  .chip.on{background:var(--yellow);color:var(--ink)}
+  .chip.done{background:var(--ink);color:#fff}
+  .meline{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:13px}
+  .codechip{font-family:'Black Han Sans';background:var(--ink);color:var(--yellow);padding:3px 10px;border-radius:8px;letter-spacing:2px}
+  .card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:4px 4px 0 var(--line)}
+  .card.flat{box-shadow:none}
+  .banner{border:2px solid var(--line);border-radius:16px;padding:18px 16px;margin:12px 0;background:var(--yellow);box-shadow:4px 4px 0 var(--line)}
+  .banner.orange{background:var(--accent);color:#fff}
+  .banner.green{background:var(--green);color:#fff}
+  .banner.dark{background:var(--ink);color:#fff}
+  .banner .kicker{font-size:13px;font-weight:700;opacity:.85;margin-bottom:4px}
+  .btn{display:block;width:100%;border:2px solid var(--line);background:var(--accent);color:#fff;font-family:'Black Han Sans';font-size:20px;padding:14px;border-radius:14px;cursor:pointer;box-shadow:3px 3px 0 var(--line);margin:10px 0}
+  .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+  .btn.sec{background:#fff;color:var(--ink)}
+  .btn.ylw{background:var(--yellow);color:var(--ink)}
+  .btn.grn{background:var(--green)}
+  .btn.small{font-size:15px;padding:9px;width:auto;display:inline-block;margin:4px 4px 4px 0}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+  .opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:2px solid var(--line);background:#fff;border-radius:14px;padding:14px;margin:10px 0;cursor:pointer;font:inherit;color:inherit}
+  .opt .num{flex:none;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-family:'Black Han Sans';font-size:18px;background:var(--soft)}
+  .opt .nm{font-weight:900;font-size:17px}
+  .opt .ds{font-size:13px;color:var(--sub);margin-top:2px}
+  .opt.sel{background:var(--yellow);box-shadow:3px 3px 0 var(--line)}
+  .opt.sel .num{background:var(--ink);color:var(--yellow)}
+  .maplink{flex:none;font-size:13px;font-weight:700;border:2px solid var(--line);border-radius:8px;padding:5px 8px;background:#fff;color:var(--ink);text-decoration:none}
+  .opt.win{background:#DFF5E9;border-color:var(--green)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .tag{font-size:13px;font-weight:700;background:var(--soft);border:1.5px solid var(--line);border-radius:999px;padding:3px 10px}
+  .tag.hero{background:var(--accent);color:#fff}
+  .tag.ok{background:var(--green);color:#fff}
+  .big{font-family:'Black Han Sans';font-size:48px;line-height:1}
+  .timer{font-family:'Black Han Sans';font-size:28px}
+  .row{display:flex;gap:10px;align-items:center}
+  .row>*{flex:1}
+  .progress{height:12px;border:2px solid var(--line);border-radius:999px;overflow:hidden;background:#fff;margin:8px 0}
+  .progress>i{display:block;height:100%;background:var(--green)}
+  input,select,textarea{font:inherit;width:100%;border:2px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink)}
+  input:focus,textarea:focus,select:focus{outline:3px solid var(--yellow)}
+  label.fl{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
+  .fieldrow{display:flex;gap:6px;margin:6px 0;align-items:center}
+  .fieldrow .idx{flex:none;width:26px;font-family:'Black Han Sans';text-align:center}
+  .fieldrow input{padding:9px 10px}
+  .fieldrow .x{flex:none;border:2px solid var(--line);background:#fff;border-radius:8px;width:34px;height:38px;cursor:pointer}
+  .qbox{border:2px dashed var(--line);border-radius:12px;padding:10px;margin:10px 0;background:#FFFCF4}
+  .addr{font-family:'Black Han Sans';font-size:22px;line-height:1.6;word-break:keep-all}
+  .addr .p{display:inline-block;min-width:26px;padding:0 4px;margin:2px;border:2px solid var(--line);border-radius:8px;background:#fff;text-align:center}
+  .addr .p.hid{background:var(--ink);color:var(--ink)}
+  .addr .p.new{animation:pop .6s ease}
+  @keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+  table.sb{width:100%;border-collapse:collapse;font-size:15px}
+  table.sb th,table.sb td{padding:8px 4px;border-bottom:1.5px solid var(--soft);text-align:center}
+  table.sb th{font-size:12px;color:var(--sub)}
+  table.sb td.nm{text-align:left;font-weight:700}
+  table.sb td.tot{font-family:'Black Han Sans';font-size:20px}
+  .note{font-size:12px;color:var(--sub);font-weight:400}
+  .modal-bg{position:fixed;inset:0;background:rgba(30,26,22,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+  .modal{background:var(--bg);width:100%;max-width:480px;border:2px solid var(--line);border-bottom:none;border-radius:20px 20px 0 0;padding:20px 16px 28px;max-height:88vh;overflow:auto}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:30;max-width:90%;text-align:center}
+  .demo{background:#2E6BFF;color:#fff;font-size:12px;padding:6px 10px;text-align:center;margin:0 -16px}
+  .sm{font-size:.5em;letter-spacing:0;margin:0 .02em}
+  .center{text-align:center}
+  .muted{opacity:.6}
+  .divider{height:2px;background:var(--line);margin:18px 0;opacity:.15}
+  .namegrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .namegrid .opt{margin:0;justify-content:center;font-weight:900;font-size:18px}
+  ul.rules{padding-left:18px;margin:6px 0}
+  ul.rules li{margin:6px 0;line-height:1.5}
+  a{color:var(--blue)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+
+<script type="module">
+/* ============================================================
+   ① Firebase 설정 — Firebase 콘솔에서 복사한 값으로 바꿔 넣으세요.
+   databaseURL이 비어 있으면 '데모 모드'로 동작합니다.
+   (데모 모드: 이 기기의 이 브라우저 안에서만 동작. 탭 여러 개로 테스트용)
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "telepathy-cc59d.firebaseapp.com",
+  databaseURL: "https://telepathy-cc59d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "telepathy-cc59d",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+/* ============================================================ */
+
+const DEMO = !FIREBASE_CONFIG.databaseURL;  // 데이터베이스 주소가 비어 있으면 데모 모드
+const $app = document.getElementById('app');
+const $modal = document.getElementById('modal');
+const params = new URLSearchParams(location.search);
+let CODE = (params.get('g') || '').toUpperCase() || null;
+const SETUP = params.has('setup');
+const store = DEMO ? sessionStorage : localStorage;   // 데모: 탭마다 다른 사람
+let DB = null, G = null, me = null, unsub = null;
+const ui = { sel: null, changing: false, lastIdx: -1, timeKey: '' };
+
+const clone = v => v == null ? null : JSON.parse(JSON.stringify(v));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const now = () => Date.now();
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const mmss = ms => { ms = Math.max(0, ms); const s = Math.floor(ms / 1000); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+const linkify = t => {
+  const urls = []; const txt = String(t ?? '').replace(/https?:\/\/[^\s]+/g, u => { urls.push(u); return ''; }).replace(/\[네이버지도\]/g, '').replace(/\s+/g, ' ').trim();
+  return (txt ? `"${esc(txt)}"` : '') + urls.map(u => ` <a class="maplink" style="display:inline-block;margin:4px 0" href="${esc(u)}" target="_blank" rel="noopener">📍 지도 열기</a>`).join('');
+};
+const fancy = t => esc(t).replace(/윤지유경데이/g, '윤<span class="sm">지</span>유<span class="sm">경</span>데이');
+const norm = s => String(s ?? '').replace(/\s+/g, '').toLowerCase();
+
+/* ---------------- DB 어댑터 ---------------- */
+function mockDB() {
+  const KEY = 'telepathy-demo-db';
+  const ch = 'BroadcastChannel' in window ? new BroadcastChannel('telepathy-demo') : null;
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
+  let tree = load();
+  const listeners = new Set();
+  const parts = p => p.split('/').filter(Boolean);
+  const getAt = p => { let n = tree; for (const k of parts(p)) { if (n == null || typeof n !== 'object') return null; n = n[k]; } return n === undefined ? null : n; };
+  const setAt = (p, v) => {
+    const ks = parts(p); let n = tree;
+    for (let i = 0; i < ks.length - 1; i++) { if (n[ks[i]] == null || typeof n[ks[i]] !== 'object') n[ks[i]] = {}; n = n[ks[i]]; }
+    const last = ks[ks.length - 1];
+    if (v === null || v === undefined) delete n[last]; else n[last] = clone(v);
+  };
+  const fire = () => { for (const l of listeners) l.cb(clone(getAt(l.path))); };
+  const save = () => { localStorage.setItem(KEY, JSON.stringify(tree)); ch && ch.postMessage(1); fire(); };
+  const reload = () => { tree = load(); fire(); };
+  if (ch) ch.onmessage = reload;
+  window.addEventListener('storage', e => { if (e.key === KEY) reload(); });
+  return {
+    get: async p => { tree = load(); return clone(getAt(p)); },
+    set: async (p, v) => { tree = load(); setAt(p, v); save(); },
+    update: async (p, o) => { tree = load(); for (const k in o) setAt(p + '/' + k, o[k]); save(); },
+    on: (p, cb) => { const l = { path: p, cb }; listeners.add(l); cb(clone(getAt(p))); return () => listeners.delete(l); },
+    txn: async (p, fn) => { tree = load(); const nv = fn(clone(getAt(p))); if (nv === undefined) return { committed: false }; setAt(p, nv); save(); return { committed: true }; }
+  };
+}
+function withTimeout(pr, ms = 10000) {
+  return Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error('TIMEOUT')), ms))]);
+}
+async function fbDB() {
+  const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+  const d = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js');
+  const cfg = Object.fromEntries(Object.entries(FIREBASE_CONFIG).filter(([, v]) => v));
+  const db = d.getDatabase(initializeApp(cfg));
+  return {
+    get: async p => (await withTimeout(d.get(d.ref(db, p)))).val(),
+    set: (p, v) => withTimeout(d.set(d.ref(db, p), v)),
+    update: (p, o) => withTimeout(d.update(d.ref(db, p), o)),
+    on: (p, cb) => d.onValue(d.ref(db, p), s => cb(s.val()), e => showError(e)),
+    txn: (p, fn) => withTimeout(d.runTransaction(d.ref(db, p), fn))
+  };
+}
+const gp = sub => `games/${CODE}${sub ? '/' + sub : ''}`;
+
+/* ---------------- 오류 안내 ---------------- */
+function explain(e) {
+  const m = String((e && (e.code || e.message)) || e);
+  if (m.includes('NO_DB_URL')) return ['databaseURL이 비어 있어요', 'index.html 맨 위 FIREBASE_CONFIG에 databaseURL 값을 넣어주세요. Firebase 콘솔 → Realtime Database 화면 맨 위에 있는 https://…firebasedatabase.app 주소예요.'];
+  if (/permission/i.test(m)) return ['Firebase가 접근을 막고 있어요', 'Realtime Database → 규칙(Rules) 탭에서 ".read"와 ".write"를 true로 바꾸고 게시해 주세요. (테스트 모드 30일이 지났을 수도 있어요)'];
+  if (m.includes('TIMEOUT')) return ['Firebase가 응답하지 않아요', '① databaseURL이 정확한지 ② Realtime Database를 실제로 만들었는지(Firestore 아님) ③ 인터넷 연결을 확인해 주세요.'];
+  if (/Failed to fetch|import|module/i.test(m)) return ['Firebase 프로그램을 불러오지 못했어요', '인터넷 연결을 확인하고, 파일을 카카오톡 미리보기가 아닌 크롬·사파리에서 열어주세요.'];
+  return ['오류가 생겼어요', m];
+}
+function showError(e) {
+  const [t, d] = explain(e);
+  $app.innerHTML = `${demoBar()}<div class="card" style="margin-top:40px"><h3>⚠️ ${esc(t)}</h3><p>${esc(d)}</p>
+    <p class="note">오류 원문: ${esc(String((e && (e.code || e.message)) || e))}</p>
+    <button class="btn sec" onclick="location.reload()">다시 시도</button><a class="btn sec" href="?">처음으로</a></div>`;
+}
+window.addEventListener('unhandledrejection', ev => showError(ev.reason));
+
+/* ---------------- 기본 설정값 ---------------- */
+const DEFAULTS = {
+  title: '윤지유경데이 텔레파시 특집',
+  players: ['', '', '', '', '', '', '', ''],
+  cafes: [
+    { name: '세컨브레스', desc: '서울 서초구 양재천로 95-2 1층', url: 'https://naver.me/xaTMWCZh' },
+    { name: '모센트 양재점', desc: '서울 서초구 양재천로29길 21 1층 102호', url: 'https://naver.me/5Z1tFOz9' },
+    { name: '카페모호', desc: '서울 서초구 양재천로7길 1 1층', url: 'https://naver.me/xOND7v1n' }
+  ],
+  spots: [
+    { name: '영동1교 북단', desc: '다리 위 카페거리 쪽 끝' },
+    { name: '영동1교 아래', desc: '다리 밑 인라인스케이트장 쪽' },
+    { name: '살롱드가든', desc: '영동1교~2교 사이 정원 데크길' },
+    { name: '영동2교 아래 쉼터', desc: '다리 밑 미디어아트 쉼터' }
+  ],
+  updown: { answer: 79, min: 50, max: 100, tries: 5 },
+  addressPrefix: '서울 서초구 언남길 ',
+  restaurant: { name: '', address: '서울 서초구 언남길 79' },
+  times: { r1Move: 10, r2Limit: 30 },
+  r2Range: '세 카페(세컨브레스·모센트 양재점·카페모호)가 있는 구간의 양재천길',
+  r2Fallback: '',
+  revealAt: '',
+  adminPin: ''
+};
+
+/* ---------------- 시작 ---------------- */
+async function boot() {
+  $app.innerHTML = `<p class="center sub" style="margin-top:80px">연결 중…</p>`;
+  try { DB = DEMO ? mockDB() : await fbDB(); }
+  catch (e) { showError(e); return; }
+  $app.addEventListener('click', onClick);
+  $app.addEventListener('change', e => { if (e.target.id === 's_count') onSetupCount(); });
+  $modal.addEventListener('click', onClick);
+  if (!CODE) return renderHome();
+  if (SETUP) {
+    if (CODE === 'NEW') return renderSetup(null);
+    $app.innerHTML = `<p class="center sub" style="margin-top:80px">불러오는 중…</p>`;
+    try { return renderSetup(await DB.get(gp('config'))); } catch (e) { return showError(e); }
+  }
+  me = store.getItem('tp_me_' + CODE);
+  $app.innerHTML = `<p class="center sub" style="margin-top:80px">불러오는 중…</p>`;
+  let loaded = false;
+  setTimeout(() => { if (!loaded) showError(new Error('TIMEOUT')); }, 12000);
+  unsub = DB.on(gp(), v => { loaded = true; G = v; render(); autoAdvance(); });
+  setInterval(tick, 1000);
+}
+
+/* ---------------- 공통 계산 ---------------- */
+const C = () => G.config;
+const S = () => G.state || { round: 0, phase: 'lobby' };
+const pname = id => (C().players.find(p => p.id === id) || {}).name || '?';
+const allIds = () => C().players.map(p => p.id);
+const staffIds = () => [C().quizmaster, C().host].filter(Boolean);
+const isStaff = id => staffIds().includes(id);
+const scoreIds = () => allIds().filter(id => !isStaff(id));
+const activeIds = r => r === 3 ? scoreIds() : allIds();
+const isAdmin = () => store.getItem('tp_admin_' + CODE) === '1';
+const rd = r => (G['r' + r] || {});
+const groupOf = id => (S().groups || []).find(g => g.includes(id)) || [];
+const reached = r => { const s = S(); return s.round > r || (s.round === r && ['reveal', 'quiz', 'done'].includes(s.phase)); };
+function majority(vals) {
+  const cnt = {}; vals.forEach(v => { if (v != null) cnt[v] = (cnt[v] || 0) + 1; });
+  let best = null, bc = -1; Object.keys(cnt).forEach(k => { if (cnt[k] > bc) { bc = cnt[k]; best = +k; } });
+  return best;
+}
+function loneIds() {
+  if (S().plan && S().plan.mode !== 'choose') return [];
+  const r1 = G.r1 || {}, cnt = {}; allIds().forEach(id => { const c = r1[id] && r1[id].cur; if (c != null) cnt[c] = (cnt[c] || 0) + 1; });
+  return allIds().filter(id => r1[id] && r1[id].cur != null && cnt[r1[id].cur] === 1);
+}
+function finalCafe(id) { const d = (G.r1 || {})[id], pm = (S().plan && S().plan.moves) || {}; if (pm[id] != null) return pm[id]; return d ? (d.moved != null ? d.moved : d.cur) : null; }
+function makePlan() {
+  // 2라운드 팀이 항상 2팀 이상, 팀마다 2명 이상이 되도록 정리
+  const r1 = G.r1 || {}, ids = allIds().filter(id => r1[id] && r1[id].cur != null), nC = C().cafes.length;
+  const by = {}; ids.forEach(id => (by[r1[id].cur] = by[r1[id].cur] || []).push(id));
+  const solid = Object.keys(by).map(Number).filter(c => by[c].length >= 2), lone = Object.keys(by).map(Number).filter(c => by[c].length === 1);
+  const moves = {};
+  if (solid.length >= 2 || ids.length < 4) return { mode: 'choose', moves };
+  if (solid.length === 1 && lone.length >= 2) { const meet = shuffle(lone)[0]; lone.forEach(c => { if (c !== meet) moves[by[c][0]] = meet; }); return { mode: 'loneTeam', meet, moves }; }
+  if (solid.length === 1 && lone.length === 1) { const big = shuffle(by[solid[0]]), need = Math.floor(ids.length / 2) - 1; big.slice(0, need).forEach(id => moves[id] = lone[0]); return { mode: 'split', moves }; }
+  if (solid.length === 1 && lone.length === 0 && by[solid[0]].length === allIds().length) return { mode: 'allTogether', moves };
+  if (solid.length === 1 && lone.length === 0) { const c0 = solid[0], other = shuffle([...Array(nC).keys()].filter(c => c !== c0))[0]; shuffle(by[c0]).slice(0, Math.floor(ids.length / 2)).forEach(id => moves[id] = other); return { mode: 'split', moves }; }
+  return { mode: 'choose', moves };
+}
+function moveOptions(id) {
+  const r1 = G.r1 || {}, mine = r1[id].cur, lone = loneIds();
+  const others = C().cafes.map((_, i) => i).filter(i => i !== mine);
+  const solid = others.filter(i => allIds().some(x => x !== id && !lone.includes(x) && r1[x] && r1[x].cur === i));
+  return solid.length ? solid : others;
+}
+function r2Clusters() {
+  const n = (S().groups || []).length, par = [...Array(n).keys()];
+  const f = x => par[x] === x ? x : (par[x] = f(par[x]));
+  Object.keys(G.r2links || {}).forEach(k => { const [a, b] = k.split('_').map(Number); if (a < n && b < n) par[f(a)] = f(b); });
+  const cl = {}; for (let i = 0; i < n; i++) (cl[f(i)] = cl[f(i)] || []).push(i);
+  return { list: Object.values(cl), root: f };
+}
+function UD() { const u = C().updown || {}; return { answer: +u.answer || 79, min: +u.min || 50, max: +u.max || 100, tries: +u.tries || 5 }; }
+function udState(pid) {
+  const u = UD(), gs = Object.values(((G.quiz && G.quiz.guesses) || {})[pid] || {}).sort((a, b) => a.at - b.at);
+  let lo = u.min, hi = u.max; gs.forEach(g => { if (g.n < u.answer) lo = Math.max(lo, g.n + 1); else if (g.n > u.answer) hi = Math.min(hi, g.n - 1); });
+  const won = gs.some(g => g.n === u.answer);
+  return { u, gs, lo, hi, won, used: gs.length, left: u.tries - gs.length, over: won || gs.length >= u.tries, pts: won ? u.tries + 1 - gs.length : 0 };
+}
+function revealAtTs() {
+  const t = C().revealAt; if (!t || !/^\d{1,2}:\d{2}$/.test(t)) return null;
+  const [h, m] = t.split(':').map(Number); const d = new Date(); d.setHours(h, m, 0, 0); return d.getTime();
+}
+
+function calcScores() {
+  const ids = allIds(), s = S(), sc = {};
+  ids.forEach(id => sc[id] = { r1: 0, r2: 0, r3: 0, notes: [] });
+  if (reached(1)) {
+    const r1 = rd(1), hero = s.hero, hc = r1[hero] ? r1[hero].cur : null;
+    ids.forEach(id => { if (id === hero || !r1[id]) return; if (hc != null && r1[id].cur === hc) sc[id].r1 += 2; sc[id].r1 -= (r1[id].changes || 0); });
+    if (hero && sc[hero]) { sc[hero].r1 += ids.filter(id => id !== hero && r1[id] && r1[id].cur === hc).length; sc[hero].notes.push('👑 1R 주인공'); }
+    const cnt = {}; ids.forEach(id => { const c = r1[id] && r1[id].cur; if (c != null) cnt[c] = (cnt[c] || 0) + 1; });
+    ids.forEach(id => { const c = r1[id] && r1[id].cur; if (c != null && cnt[c] === 1) sc[id].notes.push('🐺 외로운 늑대'); });
+  }
+  if (reached(2)) {
+    const teams = s.groups || [], links = G.r2links || {}, lim = (C().times.r2Limit || 30) * 60000;
+    const ok = s.r2Skipped || (s.r2DoneAt && s.moveAt && s.r2DoneAt - s.moveAt <= lim);
+    if (s.r2Skipped) ids.forEach(id => sc[id].notes.push('📡 2R 패스'));
+    if (ok) teams.forEach(g => g.forEach(id => { if (sc[id]) { sc[id].r2 += 3; } }));
+    const first = Object.entries(links).sort((a, b) => a[1] - b[1])[0];
+    if (first) first[0].split('_').map(Number).forEach(ti => (teams[ti] || []).forEach(id => { if (sc[id]) { sc[id].r2 += 1; sc[id].notes.push('⚡ 첫 만남'); } }));
+  }
+  if (reached(3) && S().phase === 'done') activeIds(3).forEach(id => { const d = udState(id); sc[id].r3 = d.pts; if (d.won && d.used === 1) sc[id].notes.push('🎯 한 번에 정답'); });
+  ids.forEach(id => sc[id].total = sc[id].r1 + sc[id].r2 + sc[id].r3);
+  staffIds().forEach(id => { if (sc[id]) sc[id] = { r1: 0, r2: 0, r3: 0, total: 0, notes: [] }; });
+  return sc;
+}
+
+/* ---------------- 자동 진행 (사회자 대신) ---------------- */
+function nextState(cur) {
+  if (!cur) return undefined;
+  const ids = allIds(), base = { ...cur, at: now() }; delete base.ready;
+  if (cur.phase === 'lobby') return { ...base, round: 1, phase: 'choose', hero: shuffle(ids.filter(id => !isStaff(id)).length ? ids.filter(id => !isStaff(id)) : ids)[0] };
+  if (cur.phase === 'choose') return { ...base, phase: 'move', moveAt: now() };
+  if (cur.phase === 'move' && cur.round === 2) return { ...base, phase: 'reveal', r2DoneAt: now() };
+  if (cur.phase === 'move') return cur.round === 1 ? { ...base, phase: 'reveal', plan: makePlan() } : { ...base, phase: 'reveal' };
+  if (cur.phase === 'reveal') {
+    if (cur.round === 1 && cur.plan && cur.plan.mode === 'allTogether') return { ...base, round: 3, phase: 'quiz', r2Skipped: true };
+    if (cur.round === 1) {
+      const r1 = G.r1 || {}, groups = [], cafes = [];
+      C().cafes.forEach((_, ci) => { const m = ids.filter(id => finalCafe(id) === ci); if (m.length) { groups.push(m); cafes.push(ci); } });
+      const lost = ids.filter(id => !(r1[id] && r1[id].cur != null));
+      if (lost.length) { if (groups.length) groups[groups.length - 1].push(...lost); else { groups.push(lost); cafes.push(-1); } }
+      const used = new Set(); const codes = groups.map(() => { let c; do { c = String(Math.floor(1000 + Math.random() * 9000)); } while (used.has(c)); used.add(c); return c; });
+      return { ...base, round: 2, phase: 'choose', groups, teamCafe: cafes, teamCodes: codes };
+    }
+    if (cur.round === 2) return { ...base, round: 3, phase: 'quiz' };
+  }
+  if (cur.phase === 'quiz') return { ...base, phase: 'done' };
+  return undefined;
+}
+function advance(fromRound, fromPhase) {
+  return DB.txn(gp('state'), cur => {
+    cur = cur || { round: 0, phase: 'lobby' };
+    if (cur.round !== fromRound || cur.phase !== fromPhase) return undefined;
+    return nextState(cur);
+  });
+}
+let advancing = false;
+async function autoAdvance() {
+  if (!G || !G.config || advancing) return;
+  const s = S(), r = s.round, ph = s.phase, act = activeIds(r || 1);
+  let go = false;
+  if (ph === 'lobby' || ph === 'reveal') go = act.every(id => s.ready && s.ready[id]) && !(r === 1 && ph === 'reveal' && loneIds().some(id => (G.r1 || {})[id].moved == null));
+  else if (ph === 'choose') {
+    if (r === 2) go = false; // 방장이 시작
+    else go = act.every(id => rd(r)[id] && rd(r)[id].first != null);
+  }
+  else if (ph === 'move') {
+    if (r === 2) go = (s.groups || []).length > 0 && r2Clusters().list.length === 1;
+    else go = act.every(id => rd(r)[id] && rd(r)[id].arrived);
+  }
+  else if (ph === 'quiz') {
+    const q = G.quiz || {}; const ra = revealAtTs();
+    go = activeIds(3).every(id => udState(id).over) || (ra && now() >= ra);
+  }
+  if (go) { advancing = true; try { await advance(r, ph); } finally { advancing = false; } }
+}
+
+/* ---------------- 렌더링 ---------------- */
+function keepInputs(fn) {
+  const vals = {}; let focus = null, ss = 0, se = 0;
+  document.querySelectorAll('#app input[id],#app textarea[id]').forEach(el => vals[el.id] = el.value);
+  const a = document.activeElement; if (a && a.id && vals[a.id] !== undefined) { focus = a.id; ss = a.selectionStart; se = a.selectionEnd; }
+  fn();
+  for (const id in vals) { const el = document.getElementById(id); if (el) el.value = vals[id]; }
+  if (focus) { const el = document.getElementById(focus); if (el) { el.focus(); try { el.setSelectionRange(ss, se); } catch (e) {} } }
+}
+function render() {
+  if (!G || !G.config) { $app.innerHTML = `<div class="card" style="margin-top:60px"><h3>게임을 찾을 수 없어요</h3><p class="sub">코드 <b>${esc(CODE)}</b>를 확인해 주세요.</p><a class="btn sec" href="?">처음으로</a></div>`; return; }
+  document.title = C().title;
+  if (!me || !C().players.find(p => p.id === me)) return keepInputs(renderJoin);
+  keepInputs(renderGame);
+  ui.timeKey = timeKey();
+}
+function demoBar() { return DEMO ? `<div class="demo">데모 모드 · 이 브라우저 안에서만 동작해요 (탭을 여러 개 열어 테스트)</div>` : ''; }
+
+function renderHome() {
+  $app.innerHTML = `${demoBar()}
+  <div style="padding-top:48px">
+    <div class="banner"><h1>${fancy('윤지유경데이')}<br>텔레파시 특집</h1>
+      <p style="margin-top:10px">연락은 금지. 오직 마음으로 만나기.</p></div>
+    <div class="card">
+      <label class="fl" for="joincode">게임 코드로 입장</label>
+      <input id="joincode" placeholder="예: KDXP" maxlength="6" style="text-transform:uppercase;font-size:20px;letter-spacing:3px">
+      <button class="btn" data-act="joinCode">입장하기</button>
+    </div>
+    <button class="btn sec" data-act="newGame">방장: 새 게임 만들기</button>
+  </div>`;
+}
+
+function renderJoin() {
+  const pl = G.players || {};
+  $app.innerHTML = `${demoBar()}
+  <div style="padding-top:36px">
+    <div class="banner"><div class="kicker">게임 코드 ${esc(CODE)}</div><h2>${fancy(C().title)}</h2></div>
+    <div class="card"><h3>나는 누구?</h3><p class="sub">내 이름을 눌러 입장하세요.</p>
+      <div class="namegrid">${C().players.map(p => `<button class="opt" data-act="join" data-id="${p.id}">${esc(p.name)}${pl[p.id] ? ' <span class="note">✓</span>' : ''}</button>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+function header() {
+  const s = S(), r = s.round;
+  const chip = (n, label) => `<div class="chip ${r > n || (r === n && s.phase === 'done') ? 'done' : r === n ? 'on' : ''}">${label}</div>`;
+  return `${demoBar()}<header class="top">
+    <div class="toprow"><div class="ttl">${fancy(C().title)}</div>
+      <button class="iconbtn" data-act="scores" title="점수판">🏆</button>
+      <button class="iconbtn" data-act="admin" title="방장">⚙️</button></div>
+    <div class="chips">${chip(1, '1 ☕ 카페')}${chip(2, '2 🧭 다 모이기')}${chip(3, '3 🍽️ 주소퀴즈')}</div>
+    <div class="meline"><span>나: <b>${esc(pname(me))}</b>${C().quizmaster === me ? ' · 방장(출제자)' : C().host === me ? ' · 진행자' : ''}</span><span class="sub">${S().round === 2 && groupOf(me).length ? teamName(G.state.groups.indexOf(groupOf(me))) : ''}</span></div>
+  </header>`;
+}
+
+function readyBox(label, sub) {
+  const s = S(), act = activeIds(s.round || 1), rdy = s.ready || {};
+  const n = act.filter(id => rdy[id]).length, mine = !!rdy[me], inAct = act.includes(me);
+  return `<div class="card">
+    ${sub ? `<p class="sub" style="margin-top:0">${sub}</p>` : ''}
+    <div class="progress"><i style="width:${n / act.length * 100}%"></i></div>
+    <p class="sub center">${n} / ${act.length}명 준비 완료 · 모두 누르면 자동으로 넘어가요</p>
+    ${inAct ? `<button class="btn ${mine ? 'sec' : 'grn'}" data-act="ready">${mine ? '준비 취소' : label}</button>` : ''}
+  </div>`;
+}
+function waitBox(r, label) {
+  const act = activeIds(r); const n = act.filter(id => rd(r)[id] && rd(r)[id].first != null).length;
+  return `<div class="card center"><h3>${label}</h3><div class="progress"><i style="width:${n / act.length * 100}%"></i></div>
+    <p class="sub">${n} / ${act.length}명 선택 완료 · 누가 뭘 골랐는지는 비밀!</p></div>`;
+}
+function optList(list, opts = {}) {
+  return list.map((o, i) => {
+    const cls = ['opt']; if (opts.sel === i) cls.push('sel'); if (opts.win === i) cls.push('win');
+    const tags = opts.tags ? opts.tags(i) : '';
+    return `<div class="${cls.join(' ')}" ${opts.act ? `data-act="${opts.act}" data-i="${i}" role="button"` : ''}>
+      <div class="num">${opts.labels ? opts.labels[i] : i + 1}</div>
+      <div style="flex:1"><div class="nm">${esc(o.name)}</div>${o.desc ? `<div class="ds">${esc(o.desc)}</div>` : ''}${tags}</div>
+      ${o.url ? `<a class="maplink" href="${esc(o.url)}" target="_blank" rel="noopener">지도</a>` : ''}
+    </div>`;
+  }).join('');
+}
+const nameTags = (ids, extra) => ids.length ? `<div class="tags">${ids.map(id => `<span class="tag ${extra ? extra(id) : ''}">${esc(pname(id))}</span>`).join('')}</div>` : `<div class="tags"><span class="note">아무도 없음</span></div>`;
+
+function renderGame() {
+  const s = S(); let body = '';
+  if (s.round === 0) body = viewLobby();
+  else if (s.round === 1) body = viewR1();
+  else if (s.round === 2) body = viewR2();
+  else body = viewR3();
+  $app.innerHTML = header() + `<main>${body}</main>`;
+}
+
+function viewLobby() {
+  const pl = G.players || {};
+  return `<div class="banner"><div class="kicker">오늘의 규칙</div><h2>연락 금지!<br>마음으로만 만나기</h2></div>
+  <div class="card"><ul class="rules">
+    <li><b>1R ☕ 카페</b>: 주인공 1명의 <b>진짜 취향 카페</b>를 맞혀서 그곳으로 가요. 맞히면 +2점, 주인공은 맞힌 사람 1명당 +1점.</li>
+    <li><b>2R 🧭 다 모이기</b>: 1라운드에 같은 카페에 모인 사람끼리 한 팀! 방장이 시작을 누르면 정해진 범위 안에서 <b>힌트 없이 30분 안에 모든 팀이 만나야</b> 해요. 성공하면 모두 +3점. 시간이 넘으면 구조 모드에서 서로 현재 위치를 메시지로 보내요.</li>
+    <li><b>3R 🍽️ 주소퀴즈</b>: 모인 자리에서 바로 저녁 식당의 번지수를 업다운으로 맞혀요. 각자 기회 5번, 적게 쓸수록 점수가 커요!</li>
+    <li>게임 중 단톡·전화·눈짓 금지! 목적지를 바꾸면 감점이에요.</li>
+  </ul></div>
+  <div class="card"><h3>입장 현황</h3>${nameTags(allIds(), id => pl[id] ? 'ok' : '')}</div>
+  ${readyBox('준비 완료! 시작하자', '모두 준비를 누르면 1라운드가 시작돼요.')}`;
+}
+
+/* ----- 1라운드 ----- */
+function viewR1() {
+  const s = S(), cafes = C().cafes, hero = s.hero, my = rd(1)[me], isHero = hero === me;
+  const top = isHero
+    ? `<div class="banner orange"><div class="kicker">1라운드 · 주인공은 바로 당신!</div><h2>진짜 내 취향<br>카페를 고르세요</h2><p>친구들이 당신을 얼마나 아는지 시험하는 시간이에요.</p></div>`
+    : `<div class="banner"><div class="kicker">1라운드 · 카페</div><h2>${esc(pname(hero))}의<br>취향 카페로 모여라!</h2></div>`;
+  if (s.phase === 'choose') {
+    if (my && my.first != null) return top + `<div class="card"><p class="sub" style="margin:0">내 선택</p>${optList([cafes[my.first]], { sel: 0, labels: [my.first + 1] })}</div>` + waitBox(1, '다른 친구들 기다리는 중…');
+    return top + `<p class="sub">${isHero ? '' : esc(pname(hero)) + '라면 어디를 고를까? '}하나를 고르고 잠그세요. 잠그면 바꿀 때마다 -1점이에요.</p>`
+      + optList(cafes, { act: 'sel', sel: ui.sel }) + `<button class="btn" data-act="lock" ${ui.sel == null ? 'disabled' : ''}>이걸로 잠그기 🔒</button>`;
+  }
+  if (s.phase === 'move') {
+    const act = allIds(), n = act.filter(id => rd(1)[id] && rd(1)[id].arrived).length;
+    if (ui.changing && !isHero) return top + `<div class="card"><h3>목적지 바꾸기 (-1점)</h3>${optList(cafes, { act: 'sel', sel: ui.sel })}
+      <button class="btn" data-act="change" ${ui.sel == null ? 'disabled' : ''}>바꾸기</button><button class="btn sec" data-act="cancelChange">취소</button></div>`;
+    return top + `<div class="card"><p class="sub" style="margin:0">내 목적지</p>${optList([cafes[my.cur]], { sel: 0, labels: [my.cur + 1] })}
+      <div class="row"><div><p class="sub" style="margin:0">이동 시간</p><div class="timer" data-since="${s.moveAt}">00:00</div></div>
+      <div><p class="sub" style="margin:0">권장</p><div class="timer">${C().times.r1Move}분</div></div></div></div>
+      ${my.arrived ? `<div class="banner green"><h3>도착 완료!</h3><p>카페 안에 누가 있는지 확인해 보세요 👀</p></div>`
+        : `<button class="btn grn" data-act="arrive">도착했어요!</button>${isHero ? '' : '<button class="btn sec" data-act="startChange">목적지 바꾸기 (-1점)</button>'}`}
+      <div class="card"><div class="progress"><i style="width:${n / act.length * 100}%"></i></div><p class="sub center">${n} / ${act.length}명 도착 · 다 도착하면 결과가 공개돼요</p></div>`;
+  }
+  // reveal
+  const r1 = rd(1), hc = r1[hero] ? r1[hero].cur : null, sc = calcScores();
+  const at = i => allIds().filter(id => r1[id] && r1[id].cur === i);
+  const right = allIds().filter(id => id !== hero && r1[id] && r1[id].cur === hc).length;
+  const lone = loneIds(), pending = lone.filter(id => r1[id].moved == null);
+  const fin = i => allIds().filter(id => finalCafe(id) === i);
+  let mine = '';
+  const plan = s.plan || {}, pm = plan.moves || {};
+  if (plan.mode === 'allTogether') mine = `<div class="banner green"><div class="kicker">텔레파시 대성공</div><h2>🎉 ${allIds().length}명 전원<br>같은 카페!</h2><p>텔레파시가 이미 통했으니 <b>2라운드는 패스</b>! 모두 2라운드 성공 점수 +3점을 받고, 여기서 바로 3라운드 업다운으로 가요.</p></div>`;
+  else if (plan.mode && plan.mode !== 'choose' && Object.keys(pm).length) {
+    const why = plan.mode === 'loneTeam' ? '혼자 온 사람끼리 한 팀이 돼요!' : '이대로면 팀이 하나뿐이라 앱이 두 팀으로 나눴어요!';
+    mine = `<div class="banner ${pm[me] != null ? 'orange' : 'dark'}"><h3>🔀 팀 조정</h3><p>${why}</p>
+      ${Object.keys(pm).map(id => `<p style="margin:4px 0">${esc(pname(id))} → <b>${esc(cafes[pm[id]].name)}</b></p>`).join('')}
+      ${pm[me] != null ? `<p style="margin-top:8px"><b>나는 「${esc(cafes[pm[me]].name)}」로 이동해요!</b></p>` : ''}</div>`;
+  }
+  if (lone.includes(me)) {
+    const opts = moveOptions(me);
+    mine = r1[me].moved == null
+      ? `<div class="banner orange"><h3>🐺 혼자 왔네요!</h3><p>2라운드는 팀전이라 혼자면 안 돼요. 나머지 카페 중 한 곳을 골라 그쪽으로 합류하세요.</p></div>`
+        + opts.map(i => `<div class="opt ${ui.sel === i ? 'sel' : ''}" data-act="sel" data-i="${i}" role="button"><div class="num">${i + 1}</div><div style="flex:1"><div class="nm">${esc(cafes[i].name)}</div><div class="ds">${esc(cafes[i].desc || '')}</div>${nameTags(at(i))}</div></div>`).join('')
+        + `<button class="btn" data-act="loneMove" ${ui.sel == null || !opts.includes(ui.sel) ? 'disabled' : ''}>이 카페로 합류하기</button>`
+      : `<div class="banner green"><h3>「${esc(cafes[r1[me].moved].name)}」로 합류!</h3><p>그 카페로 이동해서 팀원들과 만나세요.</p></div>`;
+  }
+  return `<div class="banner orange"><div class="kicker">1라운드 결과</div><h2>${esc(pname(hero))}의 진짜 취향은<br>「${esc(cafes[hc] ? cafes[hc].name : '?')}」</h2><p>${right}명이 맞혔어요!</p></div>`
+    + mine
+    + optList(cafes, { win: hc, tags: i => nameTags(at(i), id => id === hero ? 'hero' : '') + (fin(i).filter(id => r1[id].cur !== i).length ? `<div class="tags">${fin(i).filter(id => r1[id].cur !== i).map(id => `<span class="tag ok">+ ${esc(pname(id))} 합류</span>`).join('')}</div>` : '') })
+    + scoreMini('r1')
+    + (pending.length ? `<div class="card center"><p class="sub" style="margin:0">혼자 온 ${pending.map(id => esc(pname(id))).join(', ')}님이 합류할 카페를 고르는 중…</p></div>` : '')
+    + (lone.includes(me) && r1[me].moved == null ? '' : plan.mode === 'allTogether' ? readyBox('업다운 시작!', '모두 준비를 누르면 3라운드 번지수 업다운이 시작돼요.') : readyBox('다음 라운드 준비 완료', '2라운드는 같은 카페에 모인 사람끼리 한 팀이에요!'));
+}
+
+/* ----- 2라운드 ----- */
+function teamName(i) { const ci = (S().teamCafe || [])[i]; const c = C().cafes[ci]; return c ? c.name + ' 팀' : (i + 1) + '팀'; }
+function viewR2() {
+  const s = S(), teams = s.groups || [], L = G.r2loc || {}, links = G.r2links || {};
+  const g = groupOf(me), ti = teams.indexOf(g), mates = g.filter(id => id !== me);
+  const lim = (C().times.r2Limit || 30) * 60000, range = C().r2Range || '';
+  const top = `<div class="banner"><div class="kicker">2라운드 · 다 같이 모이기</div><h2>${esc(teamName(ti))}</h2>
+    <p>${mates.length ? '우리 팀: ' + g.map(id => esc(pname(id))).join(', ') : '혼자 팀이에요! 외로운 늑대의 텔레파시를 보여주세요 🐺'}</p></div>
+    <div class="card"><p class="sub" style="margin:0">📍 범위</p><h3 style="margin:4px 0;line-height:1.4">${esc(range)}</h3>
+    <p class="sub" style="margin:0">힌트 없음 · 다른 팀과 연락 금지 · <b>${C().times.r2Limit || 30}분 안에 ${teams.length}팀 모두 만나기</b></p></div>`;
+  if (s.phase === 'choose') {
+    return top + `<div class="card"><p style="margin:0">팀원끼리 어디로 갈지 미리 상의해 두세요. 시작하면 다른 팀과는 연락 금지!</p></div>`
+      + (isAdmin() ? `<button class="btn grn" data-act="startR2">▶ 2라운드 시작 (방장)</button><p class="sub center">모든 팀이 출발 준비되면 누르세요. ${C().times.r2Limit || 30}분 타이머가 시작돼요.</p>`
+        : `<div class="banner dark center"><h3>방장이 시작을 누르면 출발!</h3></div>`);
+  }
+  const cl = r2Clusters(), myCl = cl.list.find(c => c.includes(ti)) || [ti], code = (s.teamCodes || [])[ti];
+  if (s.phase === 'move') {
+    const el = now() - (s.moveAt || now()), over = el >= lim;
+    return top + `<div class="card"><div class="row"><div><p class="sub" style="margin:0">남은 시간</p><div class="timer" data-until="${s.moveAt + lim}">--:--</div></div>
+        <div><p class="sub" style="margin:0">우리 팀 코드</p><div class="big" style="font-size:36px;letter-spacing:4px">${esc(code)}</div></div></div></div>`
+      + (over ? `<div class="banner orange"><h3>⏰ 시간 초과! 구조 모드</h3><p>지금 있는 위치를 메시지로 남겨서 서로 찾아가세요.</p>
+          ${C().r2Fallback ? `<p>그래도 못 찾으면 → <b>${esc(C().r2Fallback)}</b>로 모이세요!</p>` : ''}</div>
+        <div class="card"><h3>📍 우리 팀 현재 위치</h3>
+          <div class="row"><textarea id="locText" rows="2" placeholder="예: 영동1교 밑 파란 벤치 앞&#10;네이버지도 공유 링크를 붙여 넣어도 돼요"></textarea><button class="btn" style="margin:0;flex:none;width:auto;padding:12px 16px" data-act="teamLoc">보내기</button></div>
+          <div class="divider"></div>
+          ${cl.list.map(c => { const msgs = c.map(i => L[i]).filter(Boolean).sort((a, b) => b.at - a.at); const m = msgs[0];
+            return `<p style="margin:8px 0"><b>${c.map(i => esc(teamName(i))).join(' + ')}</b>${c.includes(ti) ? ' (우리)' : ''}<br>${m ? `${linkify(m.text)} <span class="note">${mmss(now() - m.at)} 전 · ${esc(pname(m.by))}</span>` : '<span class="note">아직 위치를 안 남겼어요</span>'}</p>`; }).join('')}
+        </div>` : '')
+      + `<div class="card"><h3>다른 팀을 만나면</h3><p class="sub">그 팀의 팀 코드를 입력하세요. 한 번 만난 팀끼리는 같이 움직여요.</p>
+        <div class="row"><input id="teamcode" inputmode="numeric" maxlength="4" placeholder="4자리" style="font-size:22px;letter-spacing:4px;text-align:center"><button class="btn grn" style="margin:0" data-act="teamLink">확인</button></div></div>`
+      + `<div class="card"><h3>지금 함께 있는 팀</h3>${myCl.map(i => `<p style="margin:4px 0">✅ ${esc(teamName(i))}</p>`).join('')}
+        <div class="progress"><i style="width:${(teams.length - cl.list.length + 1) / teams.length * 100}%"></i></div>
+        <p class="sub center">흩어진 무리 ${cl.list.length}개 · 하나가 되면 성공!</p></div>`;
+  }
+  // reveal
+  const took = s.r2DoneAt && s.moveAt ? s.r2DoneAt - s.moveAt : null, ok = took != null && took <= lim;
+  const order = Object.entries(links).sort((a, b) => a[1] - b[1]);
+  return (ok ? `<div class="banner green"><div class="kicker">2라운드 결과</div><h2>🎉 미션 성공!</h2><p>${mmss(took)} 만에 모두 만났어요. 모두 +3점</p></div>`
+      : `<div class="banner orange"><div class="kicker">2라운드 결과</div><h2>드디어 다 모였다!</h2><p>${took != null ? mmss(took) + ' 걸렸어요. ' : ''}30분은 넘겼지만 다 모였으니 됐어요 😅</p></div>`)
+    + `<div class="card"><h3>팀 구성</h3>${teams.map((gg, i) => `<p style="margin:8px 0"><b>${esc(teamName(i))}</b>: ${gg.map(id => esc(pname(id))).join(', ')}${L[i] ? `<br><span class="note">구조 요청 위치: ${linkify(L[i].text)}</span>` : ''}</p>`).join('')}</div>`
+    + (order.length ? `<div class="card"><h3>만난 순서</h3>${order.map(([k, t]) => { const [a, b] = k.split('_').map(Number); return `<p style="margin:4px 0">${mmss(t - s.moveAt)} · ${esc(teamName(a))} + ${esc(teamName(b))}</p>`; }).join('')}</div>` : '')
+    + scoreMini('r2') + readyBox('퀴즈 시작!', `다 모였으니 여기서 바로 번지수 업다운을 시작해요. ${staffIds().map(id => esc(pname(id))).join(', ')}님은 진행이라 빠져요.`);
+}
+
+/* ----- 3라운드 ----- */
+function viewR3() {
+  const s = S();
+  if (s.phase === 'done') return viewDone();
+  return viewQuiz(isStaff(me));
+}
+
+function addrHtml(done) {
+  const u = UD(), t = String(u.answer);
+  return `<div class="addr">${esc(C().addressPrefix || '')}<span class="p ${done ? 'new' : 'hid'}">${done ? esc(t) : '?'.repeat(t.length)}</span></div>`;
+}
+function udBoard(showCount) {
+  return `<div class="card"><h3>친구들 현황</h3>${activeIds(3).map(id => { const d = udState(id);
+    return `<p style="margin:6px 0">${esc(pname(id))} · ${d.won ? `✅ 정답${showCount ? ` (${d.used}번)` : ''}` : d.over ? '❌ 실패' : `🤔 푸는 중 ${showCount ? `(${d.used}/${d.u.tries})` : ''}`}</p>`; }).join('')}</div>`;
+}
+function viewQuiz(qm) {
+  const u = UD(), ra = revealAtTs();
+  const head = `<div class="banner dark"><div class="kicker">3라운드 · 개인전 업다운</div><h2>오늘 저녁은 어디?</h2>
+    <p>번지수는 ${u.min}~${u.max} 사이! 각자 내 폰으로 맞혀요. 기회는 <b>${u.tries}번</b>, <b>적게 쓸수록 점수가 커요</b> (1번 만에 ${u.tries}점 … ${u.tries}번째에 1점).</p></div>
+    <div class="card">${addrHtml(false)}${ra ? `<p class="sub">⏰ <span data-until="${ra}">--:--</span> 뒤 자동 공개</p>` : ''}</div>`;
+  if (qm) return head + `<div class="card"><p class="sub" style="margin:0">출제자 화면</p><p>정답: <b>${u.answer}</b> · 친구들이 맞히는 걸 지켜보세요 🤫</p></div>` + udBoard(true);
+  const d = udState(me);
+  const hist = d.gs.length ? `<div class="card"><h3>내 기록</h3>${d.gs.map((g, i) => `<p style="margin:6px 0;font-size:18px">${i + 1}번째 · <b>${g.n}</b> → ${g.n < u.answer ? '<b style="color:var(--accent)">⬆ UP</b>' : g.n > u.answer ? '<b style="color:var(--blue)">⬇ DOWN</b>' : '<b style="color:var(--green)">🎯 정답!</b>'}</p>`).join('')}</div>` : '';
+  const range = `<div class="card center"><p class="sub" style="margin:0">내 가능한 범위</p><div class="big" style="font-size:40px">${d.lo} ~ ${d.hi}</div>
+    <p style="margin:6px 0 0">남은 기회 ${'❤️'.repeat(Math.max(0, d.left))}${'🖤'.repeat(Math.max(0, u.tries - d.left))}</p></div>`;
+  const input = d.won ? `<div class="banner green"><h3>🎯 ${d.used}번 만에 정답! +${d.pts}점</h3><p>정답은 비밀! 다른 친구들이 끝날 때까지 기다려요 🤫</p></div>`
+    : d.over ? `<div class="banner orange"><h3>기회를 다 썼어요 😭</h3><p>다른 친구들이 끝나면 정답이 공개돼요.</p></div>`
+    : `<div class="card"><h3>번지수는?</h3><p class="sub">친구에게 보여주거나 알려주면 반칙!</p>
+      <div class="row"><input id="qans" type="number" inputmode="numeric" min="${u.min}" max="${u.max}" placeholder="${u.min}~${u.max}" style="font-size:24px;text-align:center"><button class="btn" style="margin:0" data-act="qSubmit">확인</button></div></div>`;
+  return head + range + input + hist + udBoard(false);
+}
+function viewDone() {
+  const u = UD(), R = C().restaurant || {}, addr = R.address || ((C().addressPrefix || '') + u.answer);
+  const rank = activeIds(3).map(id => ({ id, d: udState(id) })).sort((a, b) => (b.d.pts - a.d.pts));
+  return `<div class="banner green"><div class="kicker">정답은 ${u.answer}!</div><h2>오늘의 저녁은<br>「${esc(R.name || '???')}」</h2></div>`
+    + `<div class="card">${addrHtml(true)}<p style="margin-top:10px"><b>${esc(addr)}</b></p>
+      <a class="btn sec" href="https://map.naver.com/p/search/${encodeURIComponent(addr)}" target="_blank" rel="noopener">네이버 지도에서 보기</a>
+      <a class="btn sec" href="https://map.kakao.com/?q=${encodeURIComponent(addr)}" target="_blank" rel="noopener">카카오맵에서 보기</a></div>`
+    + `<div class="card"><h3>업다운 결과</h3>${rank.map(({ id, d }) => `<p style="margin:6px 0">${esc(pname(id))} · ${d.won ? `${d.used}번 만에 정답 <b>+${d.pts}</b>` : '실패 0점'} <span class="note">${d.gs.map(g => g.n).join(' → ')}</span></p>`).join('')}</div>`
+    + finalBoard();
+}
+
+/* ----- 점수 ----- */
+function scoreTable(key) {
+  const sc = calcScores(); const ids = scoreIds().sort((a, b) => (key ? sc[b][key] - sc[a][key] : sc[b].total - sc[a].total));
+  return `<table class="sb"><tr><th style="text-align:left">이름</th><th>1R</th><th>2R</th><th>3R</th><th>합계</th></tr>
+    ${ids.map(id => `<tr><td class="nm">${esc(pname(id))}<div class="note">${sc[id].notes.join(' ')}</div></td><td>${sc[id].r1}</td><td>${sc[id].r2}</td><td>${sc[id].r3}</td><td class="tot">${sc[id].total}</td></tr>`).join('')}</table>
+    ${staffIds().length ? `<p class="note" style="margin-top:8px">진행(점수 제외): ${staffIds().map(id => esc(pname(id))).join(', ')}</p>` : ''}`;
+}
+function scoreMini(key) { return `<div class="card"><h3>점수판</h3>${scoreTable(key)}</div>`; }
+function finalBoard() {
+  const sc = calcScores();
+  const solvedAt = id => { const d = udState(id); return d.won ? Math.max(...d.gs.map(g => g.at)) : Infinity; };
+  const cmp = (a, b) => (sc[b].total - sc[a].total) || (sc[b].r3 - sc[a].r3) || (solvedAt(a) - solvedAt(b));
+  const pool = scoreIds().sort(cmp);
+  if (!pool.length) return '';
+  const top = sc[pool[0]].total, tied = pool.filter(id => sc[id].total === top);
+  const kings = pool.filter(id => cmp(id, pool[0]) === 0);
+  const why = tied.length > 1 ? (kings.length < tied.length ? `<p class="note" style="color:inherit">${tied.length}명이 ${top}점 동점! 3라운드 업다운을 더 적게, 더 빨리 맞힌 사람이 1등이에요.</p>` : '') : '';
+  return `<div class="banner"><div class="kicker">최종 결과 · ${top}점</div><h2>👑 1등<br>${kings.map(id => esc(pname(id))).join(', ')}</h2>
+    <p>🎁 선물의 주인공! 축하해요 🎉</p>${why}</div>
+    <div class="card">${scoreTable()}</div>`;
+}
+/* ----- 방장 ----- */
+function adminModal() {
+  if (!isAdmin()) return `<h2>방장 확인</h2><p class="sub">방장 비밀번호를 입력하세요.</p>
+    <input id="pin" type="password" inputmode="numeric" placeholder="비밀번호"><button class="btn" data-act="pin">확인</button><button class="btn sec" data-act="close">닫기</button>`;
+  const s = S(), link = location.origin + location.pathname + '?g=' + CODE;
+  return `<h2>방장 메뉴</h2><p class="sub">현재: ${s.round}라운드 · ${s.phase}</p>
+    <div class="card flat"><p class="sub" style="margin:0">친구들에게 보낼 링크</p><p style="word-break:break-all"><b>${esc(link)}</b></p>
+      <button class="btn small sec" data-act="copy" data-t="${esc(link)}">링크 복사</button></div>
+    <button class="btn ylw" data-act="force">다음 단계로 강제 진행</button>
+    <p class="note">누가 폰이 꺼졌거나 진행이 멈췄을 때 쓰세요.</p>
+    ${s.phase === 'quiz' ? '<button class="btn ylw" data-act="forceReveal">주소 바로 공개</button>' : ''}
+    <a class="btn sec" href="?g=${CODE}&setup=1">설정 수정 (장소·퀴즈)</a>
+    <button class="btn sec" data-act="reset">게임 처음부터 다시</button>
+    <button class="btn sec" data-act="close">닫기</button>`;
+}
+function openModal(html) { $modal.innerHTML = `<div class="modal-bg" data-act="bgclose"><div class="modal">${html}</div></div>`; }
+function closeModal() { $modal.innerHTML = ''; }
+function toast(t) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 2200); }
+
+/* ---------------- 설정 화면 ---------------- */
+function playerRows(names) {
+  return names.map((n, i) => `<div class="fieldrow"><span class="idx">${i + 1}</span><input data-k="players" value="${esc(n)}" placeholder="이름"></div>`).join('');
+}
+function onSetupCount() {
+  const n = +document.getElementById('s_count').value;
+  const cur = [...document.querySelectorAll('[data-k="players"]')].map(i => i.value);
+  const names = Array.from({ length: n }, (_, i) => cur[i] || '');
+  document.getElementById('playerlist').innerHTML = playerRows(names);
+  const qm = document.getElementById('s_qm'); qm.max = n; if (+qm.value > n) qm.value = n;
+  const ho = document.getElementById('s_host'); ho.max = n; if (+ho.value > n) ho.value = 0;
+}
+function renderSetup(existing) {
+  const c = existing ? clone(existing) : clone(DEFAULTS);
+  if (existing) c.players = existing.players.map(p => p.name);
+  const qmIdx = existing ? existing.players.findIndex(p => p.id === existing.quizmaster) : 0;
+  const hostIdx = existing && existing.host ? existing.players.findIndex(p => p.id === existing.host) : -1;
+  const listRows = (key, arr, ph) => arr.map((o, i) => `<div class="fieldrow"><span class="idx">${i + 1}</span>
+    <input data-k="${key}" data-f="name" value="${esc(o.name)}" placeholder="${ph}"><input data-k="${key}" data-f="desc" value="${esc(o.desc)}" placeholder="한 줄 설명"><input data-k="${key}" data-f="url" value="${esc(o.url || '')}" placeholder="지도 링크(선택)"></div>`).join('');
+  const quizRow = (q, i) => `<div class="qbox" data-quiz><div class="row"><b style="flex:none">Q${i + 1}</b><span></span><button class="x" data-act="delQ" style="flex:none;border:2px solid var(--line);background:#fff;border-radius:8px;width:34px;height:34px">✕</button></div>
+    <input data-q="q" value="${esc(q.q)}" placeholder="문제" style="margin-top:6px">
+    <div class="row" style="margin-top:6px"><input data-q="a" value="${esc(q.a)}" placeholder="정답 (여러 개면 / 로 구분)"><input data-q="piece" value="${esc(q.piece)}" placeholder="열리는 주소 조각"></div>
+    <input data-q="hint" value="${esc(q.hint)}" placeholder="힌트 (3번 틀리면 공개, 선택)" style="margin-top:6px"></div>`;
+  window.__quizRow = quizRow;
+  $app.innerHTML = `${demoBar()}<div style="padding-top:24px">
+  <h1>${existing ? '설정 수정' : '새 게임 만들기'}</h1><p class="sub">방장만 보는 화면이에요. 나중에 ⚙️ 메뉴에서 다시 고칠 수 있어요.</p>
+  <div class="card"><label class="fl">게임 제목</label><input id="s_title" value="${esc(c.title)}">
+    <label class="fl">방장 비밀번호 (숫자 4자리 추천)</label><input id="s_pin" value="${esc(c.adminPin)}" inputmode="numeric" placeholder="예: 0915"></div>
+  <div class="card"><h3>참가자</h3>
+    <label class="fl" for="s_count">인원수</label>
+    <select id="s_count">${Array.from({ length: 10 }, (_, k) => k + 3).map(n => `<option value="${n}" ${n === c.players.length ? 'selected' : ''}>${n}명</option>`).join('')}</select>
+    <p class="sub">짝수면 2명씩 짝을 짓고, 홀수면 한 팀만 3명이 돼요.</p>
+    <div id="playerlist">${playerRows(c.players)}</div>
+    <div class="row"><div><label class="fl">방장·출제자 (몇 번?)</label><input id="s_qm" type="number" min="1" max="${c.players.length}" value="${qmIdx + 1}"></div>
+      <div><label class="fl">진행자 (몇 번? 없으면 0)</label><input id="s_host" type="number" min="0" max="${c.players.length}" value="${hostIdx + 1}"></div></div>
+    <p class="sub">두 사람은 게임에는 같이 참여하지만 점수 계산과 3라운드 업다운에서는 빠져요.</p></div>
+  <div class="card"><h3>1R ☕ 카페 후보 3곳</h3>${listRows('cafes', c.cafes, '카페 이름')}
+    <label class="fl">권장 이동 시간 (분)</label><input id="s_r1" type="number" value="${c.times.r1Move}"></div>
+  <div class="card"><h3>2R 🧭 다 모이기</h3><p class="sub">방장이 시작을 누르면 범위 안에서 힌트 없이 모든 팀이 만나야 해요.</p>
+    <label class="fl">범위 (참가자 화면에 그대로 보여요)</label><textarea id="s_range" rows="2">${esc(c.r2Range || '')}</textarea>
+    <label class="fl">제한 시간 (분)</label><input id="s_lim" type="number" value="${c.times.r2Limit || 30}">
+    <label class="fl">시간 초과 시 최종 집결지 (선택)</label><input id="s_fb" value="${esc(c.r2Fallback || '')}" placeholder="예: 영동1교 북단"></div>
+  <div class="card"><h3>3R 업다운 주소 퀴즈</h3><p class="sub">주소 앞부분은 처음부터 보이고, 번지수만 업다운으로 맞혀요.</p>
+    <label class="fl">주소 앞부분 (처음부터 보임)</label><input id="s_pre" value="${esc(c.addressPrefix)}">
+    <div class="row"><div><label class="fl">정답 번지수</label><input id="s_ans" type="number" value="${(c.updown || DEFAULTS.updown).answer}"></div>
+      <div><label class="fl">기회</label><input id="s_tries" type="number" value="${(c.updown || DEFAULTS.updown).tries}"></div></div>
+    <div class="row"><div><label class="fl">최소</label><input id="s_min" type="number" value="${(c.updown || DEFAULTS.updown).min}"></div>
+      <div><label class="fl">최대</label><input id="s_max" type="number" value="${(c.updown || DEFAULTS.updown).max}"></div></div>
+    <label class="fl">식당 이름 (마지막에 공개)</label><input id="s_rn" value="${esc(c.restaurant.name)}">
+    <label class="fl">식당 전체 주소 (지도 링크용)</label><input id="s_ra" value="${esc(c.restaurant.address)}" placeholder="예: 서울 강남구 논현로 12">
+    <label class="fl">자동 공개 시각 (선택, 예약 20분 전 추천)</label><input id="s_at" value="${esc(c.revealAt)}" placeholder="예: 18:40"></div>
+  <button class="btn" data-act="saveSetup">${existing ? '저장하기' : '게임 만들기'}</button>
+  ${existing ? `<a class="btn sec" href="?g=${CODE}">돌아가기</a>` : ''}
+  </div>`;
+  window.__existing = existing;
+}
+async function saveSetup() {
+  const ex = window.__existing;
+  const val = id => document.getElementById(id).value.trim();
+  const names = [...document.querySelectorAll('[data-k="players"]')].map(i => i.value.trim());
+  const named = names.map((n, i) => ({ n, i })).filter(x => x.n);
+  if (named.length < 2) return toast('참가자를 2명 이상 적어주세요');
+  if (!val('s_pin')) return toast('방장 비밀번호를 정해주세요');
+  const players = named.map(x => ({ id: (ex && ex.players[x.i]) ? ex.players[x.i].id : 'p' + x.i, name: x.n }));
+  const qmN = parseInt(val('s_qm'), 10) - 1; const qmP = named.find(x => x.i === qmN);
+  const hoN = parseInt(val('s_host'), 10) - 1; const hoP = hoN >= 0 ? named.find(x => x.i === hoN) : null;
+  if (hoN >= 0 && !hoP) return toast('진행자 번호에 해당하는 이름이 없어요');
+  if (hoP && hoP === qmP) return toast('진행자는 방장과 다른 사람으로 정해주세요');
+  if (!qmP) return toast('출제자 번호에 해당하는 이름이 없어요');
+  const pairs = key => { const q = f => [...document.querySelectorAll(`[data-k="${key}"][data-f="${f}"]`)]; const ns = q('name'), ds = q('desc'), us = q('url'); return ns.map((n, i) => ({ name: n.value.trim(), desc: ds[i].value.trim(), url: us[i].value.trim() })).filter(o => o.name); };
+  const updown = { answer: +val('s_ans'), min: +val('s_min') || 1, max: +val('s_max') || 100, tries: +val('s_tries') || 3 };
+  if (!(updown.answer >= updown.min && updown.answer <= updown.max)) return toast('정답 번지수가 최소~최대 범위 안에 있어야 해요');
+  const cfg = {
+    title: val('s_title') || '텔레파시 특집', adminPin: val('s_pin'), players, quizmaster: players[named.indexOf(qmP)].id, host: hoP ? players[named.indexOf(hoP)].id : '',
+    cafes: pairs('cafes'), r2Range: val('s_range'), r2Fallback: val('s_fb'),
+    updown, addressPrefix: document.getElementById('s_pre').value, restaurant: { name: val('s_rn'), address: val('s_ra') },
+    times: { r1Move: +val('s_r1') || 10, r2Limit: +val('s_lim') || 30 }, revealAt: val('s_at')
+  };
+  if (cfg.cafes.length < 2) return toast('장소는 라운드마다 2곳 이상 필요해요');
+  if (ex) { await DB.set(gp('config'), cfg); location.href = '?g=' + CODE; return; }
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; let code;
+  for (let t = 0; t < 10; t++) { code = Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join(''); if (!(await DB.get('games/' + code + '/config'))) break; }
+  CODE = code;
+  await DB.set(gp(), { config: cfg, state: { round: 0, phase: 'lobby' } });
+  store.setItem('tp_admin_' + CODE, '1');
+  const link = location.origin + location.pathname + '?g=' + CODE;
+  $app.innerHTML = `${demoBar()}<div style="padding-top:40px"><div class="banner green"><div class="kicker">게임 생성 완료</div><h1 class="big" style="letter-spacing:6px">${CODE}</h1><p>게임 코드</p></div>
+    <div class="card"><p class="sub" style="margin:0">친구들에게 이 링크를 보내세요</p><p style="word-break:break-all"><b>${esc(link)}</b></p>
+    <button class="btn sec" data-act="copy" data-t="${esc(link)}">링크 복사</button></div>
+    <a class="btn" href="?g=${CODE}">나도 입장하기</a></div>`;
+}
+
+/* ---------------- 클릭 처리 ---------------- */
+async function onClick(e) {
+  if (e.target.closest('a.maplink')) return;
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'bgclose') { if (e.target === b) closeModal(); return; }
+  const s = G ? S() : null, r = s ? s.round : 0;
+  switch (act) {
+    case 'newGame': location.href = '?g=NEW&setup=1'; break;
+    case 'joinCode': { const v = document.getElementById('joincode').value.trim().toUpperCase(); if (v) location.href = '?g=' + v; break; }
+    case 'join': {
+      const id = b.dataset.id; const pl = (G.players || {})[id];
+      me = id; store.setItem('tp_me_' + CODE, id);
+      if (!pl || !pl.code) {
+        const used = Object.values(G.players || {}).map(p => p.code); let code;
+        do { code = String(Math.floor(1000 + Math.random() * 9000)); } while (used.includes(code));
+        await DB.update(gp('players/' + id), { joined: now(), code });
+      } else render();
+      break;
+    }
+    case 'sel': ui.sel = +b.dataset.i; render(); break;
+    case 'lock': if (ui.sel == null) return; await DB.set(gp(`r${r}/${me}`), { first: ui.sel, cur: ui.sel, changes: 0, at: now() }); ui.sel = null; break;
+    case 'startChange': ui.changing = true; ui.sel = null; render(); break;
+    case 'cancelChange': ui.changing = false; ui.sel = null; render(); break;
+    case 'change': {
+      const my = rd(r)[me]; if (ui.sel == null || ui.sel === my.cur) { ui.changing = false; render(); return; }
+      const upd = { cur: ui.sel }; if (r === 1) upd.changes = (my.changes || 0) + 1;
+      ui.changing = false; ui.sel = null; await DB.update(gp(`r${r}/${me}`), upd); break;
+    }
+    case 'arrive': await DB.update(gp(`r${r}/${me}`), { arrived: now() }); break;
+    case 'teamLoc': {
+      const inp = document.getElementById('locText'), v = (inp.value || '').trim(); if (!v) return toast('위치를 적어주세요');
+      const ti = S().groups.indexOf(groupOf(me)); inp.value = '';
+      await DB.set(gp('r2loc/' + ti), { text: v, by: me, at: now() }); toast('위치를 보냈어요 📍'); break;
+    }
+    case 'loneMove': {
+      const opts = moveOptions(me); if (ui.sel == null || !opts.includes(ui.sel)) return;
+      const sel = ui.sel; ui.sel = null; await DB.update(gp('r1/' + me), { moved: sel }); toast('합류할 카페로 이동하세요!'); break;
+    }
+    case 'startR2': if (!isAdmin()) return; await advance(2, 'choose'); toast('2라운드 시작! 30분'); break;
+    case 'teamLink': {
+      const inp = document.getElementById('teamcode'), v = (inp.value || '').trim(); if (!v) return;
+      const codes = S().teamCodes || [], other = codes.indexOf(v), ti = S().groups.indexOf(groupOf(me));
+      if (other < 0) return toast('없는 팀 코드예요');
+      if (other === ti) return toast('우리 팀 코드예요 😅');
+      const { root } = r2Clusters(); if (root(other) === root(ti)) return toast('이미 함께 있는 팀이에요');
+      inp.value = ''; const k = Math.min(ti, other) + '_' + Math.max(ti, other);
+      await DB.update(gp('r2links'), { [k]: now() }); toast(`${teamName(other)}과 만났어요! 🎉`); break;
+    }
+    case 'ready': await DB.set(gp(`state/ready/${me}`), (s.ready && s.ready[me]) ? null : true); break;
+    case 'qSubmit': {
+      const inp = document.getElementById('qans'), n = parseInt(inp.value, 10), u = UD();
+      if (!(n >= u.min && n <= u.max)) return toast(`${u.min}~${u.max} 사이 숫자를 입력하세요`);
+      const d = udState(me); if (d.over) return; inp.value = '';
+      await DB.txn(gp('quiz/guesses/' + me), cur => {
+        const gs = Object.values(cur || {});
+        if (gs.length !== d.used || gs.length >= u.tries || gs.some(g => g.n === u.answer)) return undefined;
+        return { ...(cur || {}), ['g' + gs.length]: { n, at: Date.now() } };
+      });
+      toast(n === u.answer ? '🎯 정답!' : n < u.answer ? '⬆ UP!' : '⬇ DOWN!');
+      break;
+    }
+    case 'scores': openModal(`<h2>점수판</h2>${scoreTable()}<p class="note" style="margin-top:10px">1R 주인공 카페 맞힘 +2 · 주인공은 맞힌 1명당 +1 · 목적지 변경 -1<br>2R 제한 시간 안에 모두 만나면 +3 · 가장 먼저 만난 두 팀 +1<br>3R 업다운: 1번 만에 맞히면 5점, 2번 4점 … 5번째 1점, 실패 0점<br>방장·진행자는 점수 제외 · 1등에게 선물 🎁<br>동점이면 3R 점수 → 3R을 더 빨리 맞힌 사람 순</p><button class="btn sec" data-act="close">닫기</button>`); break;
+    case 'admin': openModal(adminModal()); break;
+    case 'pin': { const v = document.getElementById('pin').value; if (v === C().adminPin) { store.setItem('tp_admin_' + CODE, '1'); openModal(adminModal()); } else toast('비밀번호가 달라요'); break; }
+    case 'force': closeModal(); await advance(s.round, s.phase); toast('다음 단계로!'); break;
+    case 'forceReveal': closeModal(); await advance(3, 'quiz'); break;
+    case 'reset':
+      if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = '정말 처음부터? 한 번 더 누르세요'; return; }
+      closeModal(); await DB.update(gp(), { state: { round: 0, phase: 'lobby' }, r1: null, r2loc: null, r2links: null, quiz: null }); break;
+    case 'close': closeModal(); break;
+    case 'copy': try { await navigator.clipboard.writeText(b.dataset.t); toast('복사했어요'); } catch (er) { toast('길게 눌러 직접 복사해 주세요'); } break;
+    case 'addQ': document.getElementById('quizlist').insertAdjacentHTML('beforeend', window.__quizRow({ q: '', a: '', piece: '', hint: '' }, document.querySelectorAll('[data-quiz]').length)); break;
+    case 'delQ': b.closest('[data-quiz]').remove(); break;
+    case 'saveSetup': b.disabled = true; b.textContent = '저장 중…'; try { await saveSetup(); } catch (er) { showError(er); } finally { b.disabled = false; b.textContent = '다시 저장하기'; } break;
+  }
+}
+
+/* ---------------- 타이머 ---------------- */
+function timeKey() {
+  if (!G || !G.config) return '';
+  const s = S(), T = C().times; const el = now() - (s.moveAt || now());
+  const q = G.quiz || {};
+  return [s.phase === 'move' && s.round === 2 ? String(el >= (T.r2Limit || 30) * 60000) : '', (q.lockUntil || 0) > now()].join('|');
+}
+function tick() {
+  document.querySelectorAll('[data-since]').forEach(el => el.textContent = mmss(now() - (+el.dataset.since)));
+  document.querySelectorAll('[data-until]').forEach(el => el.textContent = mmss((+el.dataset.until) - now()));
+  if (G && G.config && me && timeKey() !== ui.timeKey) render();
+  if (G && S().phase === 'quiz') autoAdvance();
+}
+
+boot();
+</script>
+</body>
+</html>
