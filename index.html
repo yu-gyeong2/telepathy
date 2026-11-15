@@ -271,12 +271,20 @@ function majority(vals) {
   let best = null, bc = -1; Object.keys(cnt).forEach(k => { if (cnt[k] > bc) { bc = cnt[k]; best = +k; } });
   return best;
 }
+function staffMoveBox() {
+  if (!isStaff(me) || !(G.r1 || {})[me]) return '';
+  const cafes = C().cafes, cur = finalCafe(me);
+  if (!ui.staffMoving) return `<div class="card"><p class="sub" style="margin:0">진행자 메뉴 · 지금 내 카페: <b>${esc(cafes[cur] ? cafes[cur].name : '-')}</b></p><button class="btn sec small" data-act="staffMoveOpen">다른 카페로 옮기기</button></div>`;
+  return `<div class="card"><h3>어느 카페로 옮길까?</h3><p class="sub">점수엔 영향 없고, 2라운드 팀만 바뀌어요.</p>`
+    + cafes.map((c, i) => `<div class="opt ${i === cur ? 'sel' : ''}" data-act="staffMove" data-i="${i}" role="button"><div class="num">${i + 1}</div><div style="flex:1"><div class="nm">${esc(c.name)}</div>${nameTags(allIds().filter(id => id !== me && finalCafe(id) === i))}</div></div>`).join('')
+    + `<button class="btn sec" data-act="staffMoveClose">닫기</button></div>`;
+}
 function loneIds() {
   if (S().plan && S().plan.mode !== 'choose') return [];
   const r1 = G.r1 || {}, cnt = {}; allIds().forEach(id => { const c = r1[id] && r1[id].cur; if (c != null) cnt[c] = (cnt[c] || 0) + 1; });
   return allIds().filter(id => r1[id] && r1[id].cur != null && cnt[r1[id].cur] === 1);
 }
-function finalCafe(id) { const d = (G.r1 || {})[id], pm = (S().plan && S().plan.moves) || {}; if (pm[id] != null) return pm[id]; return d ? (d.moved != null ? d.moved : d.cur) : null; }
+function finalCafe(id) { const d = (G.r1 || {})[id], pm = (S().plan && S().plan.moves) || {}; if (d && d.staffMove != null) return d.staffMove; if (pm[id] != null) return pm[id]; return d ? (d.moved != null ? d.moved : d.cur) : null; }
 function makePlan() {
   // 2라운드 팀이 항상 2팀 이상, 팀마다 2명 이상이 되도록 정리
   const r1 = G.r1 || {}, ids = allIds().filter(id => r1[id] && r1[id].cur != null), nC = C().cafes.length;
@@ -321,7 +329,7 @@ function calcScores() {
   if (reached(1)) {
     const r1 = rd(1), hero = s.hero, hc = r1[hero] ? r1[hero].cur : null;
     ids.forEach(id => { if (id === hero || !r1[id]) return; if (hc != null && r1[id].cur === hc) sc[id].r1 += 2; sc[id].r1 -= (r1[id].changes || 0); });
-    if (hero && sc[hero]) { sc[hero].r1 += ids.filter(id => id !== hero && r1[id] && r1[id].cur === hc).length; sc[hero].notes.push('👑 1R 주인공'); }
+    if (hero && sc[hero]) { sc[hero].r1 += ids.filter(id => id !== hero && !isStaff(id) && r1[id] && r1[id].cur === hc).length; sc[hero].notes.push('👑 1R 주인공'); }
     const cnt = {}; ids.forEach(id => { const c = r1[id] && r1[id].cur; if (c != null) cnt[c] = (cnt[c] || 0) + 1; });
     ids.forEach(id => { const c = r1[id] && r1[id].cur; if (c != null && cnt[c] === 1) sc[id].notes.push('🐺 외로운 늑대'); });
   }
@@ -508,12 +516,12 @@ function viewR1() {
   }
   if (s.phase === 'move') {
     const act = allIds(), n = act.filter(id => rd(1)[id] && rd(1)[id].arrived).length;
-    if (ui.changing && !isHero) return top + `<div class="card"><h3>목적지 바꾸기 (-1점)</h3>${optList(cafes, { act: 'sel', sel: ui.sel })}
+    if (ui.changing && !isHero) return top + `<div class="card"><h3>목적지 바꾸기${isStaff(me) ? ' (진행)' : ' (-1점)'}</h3>${optList(cafes, { act: 'sel', sel: ui.sel })}
       <button class="btn" data-act="change" ${ui.sel == null ? 'disabled' : ''}>바꾸기</button><button class="btn sec" data-act="cancelChange">취소</button></div>`;
     return top + `<div class="card"><p class="sub" style="margin:0">내 목적지</p>${optList([cafes[my.cur]], { sel: 0, labels: [my.cur + 1] })}
       <div class="row"><div><p class="sub" style="margin:0">이동 시간</p><div class="timer" data-since="${s.moveAt}">00:00</div></div>
       <div><p class="sub" style="margin:0">권장</p><div class="timer">${C().times.r1Move}분</div></div></div></div>
-      ${my.arrived ? `<div class="banner green"><h3>도착 완료!</h3><p>카페 안에 누가 있는지 확인 👀</p></div>`
+      ${my.arrived ? `<div class="banner green"><h3>도착 완료!</h3><p>카페 안에 누가 있는지 확인 👀</p></div>${isStaff(me) ? '<button class="btn sec" data-act="startChange">다른 카페로 옮기기 (진행)</button>' : ''}`
         : `<button class="btn grn" data-act="arrive">도착!</button>${isHero ? '' : '<button class="btn sec" data-act="startChange">목적지 바꾸기 (-1점)</button>'}`}
       <div class="card"><div class="progress"><i style="width:${n / act.length * 100}%"></i></div><p class="sub center">${n} / ${act.length}명 도착 · 다 도착하면 결과 공개</p></div>`;
   }
@@ -541,7 +549,7 @@ function viewR1() {
       : `<div class="banner green"><h3>「${esc(cafes[r1[me].moved].name)}」로 합류!</h3><p>그 카페로 이동해서 팀원들과 합류</p></div>`;
   }
   return `<div class="banner orange"><div class="kicker">1라운드 결과</div><h2>${esc(pname(hero))}의 진짜 취향은<br>「${esc(cafes[hc] ? cafes[hc].name : '?')}」</h2><p>${right}명 정답!</p></div>`
-    + mine
+    + mine + staffMoveBox()
     + optList(cafes, { win: hc, tags: i => nameTags(at(i), id => id === hero ? 'hero' : '') + (fin(i).filter(id => r1[id].cur !== i).length ? `<div class="tags">${fin(i).filter(id => r1[id].cur !== i).map(id => `<span class="tag ok">+ ${esc(pname(id))} 합류</span>`).join('')}</div>` : '') })
     + scoreMini('r1')
     + (pending.length ? `<div class="card center"><p class="sub" style="margin:0">혼자 온 ${pending.map(id => esc(pname(id))).join(', ')}님이 합류할 카페를 고르는 중…</p></div>` : '')
@@ -559,7 +567,8 @@ function viewR2() {
     <div class="card"><p class="sub" style="margin:0">📍 범위</p><h3 style="margin:4px 0;line-height:1.4">${esc(range)}</h3>
     <p class="sub" style="margin:0">힌트 없음 · 다른 팀과 연락 금지 · <b>${C().times.r2Limit || 30}분 안에 ${teams.length}팀 모두 만나기</b></p></div>`;
   if (s.phase === 'choose') {
-    return top + `<div class="card"><p style="margin:0">팀원끼리 어디로 갈지 미리 상의하기. 시작하면 다른 팀과 연락 금지!</p></div>`
+    const staffTeam = isStaff(me) && teams.length > 1 ? `<div class="card"><p class="sub" style="margin:0">진행자 메뉴 · 다른 팀으로 옮기기</p>${teams.map((gg, i) => i === ti ? '' : `<button class="btn sec small" data-act="staffTeam" data-i="${i}">${esc(teamName(i))}으로</button>`).join('')}</div>` : '';
+    return top + staffTeam + `<div class="card"><p style="margin:0">팀원끼리 어디로 갈지 미리 상의하기. 시작하면 다른 팀과 연락 금지!</p></div>`
       + (isAdmin() ? `<button class="btn grn" data-act="startR2">▶ 2라운드 시작 (방장)</button><p class="sub center">모든 팀 출발 준비되면 누르기. ${C().times.r2Limit || 30}분 타이머 시작</p>`
         : `<div class="banner dark center"><h3>방장이 시작을 누르면 출발!</h3></div>`);
   }
@@ -792,7 +801,7 @@ async function onClick(e) {
     case 'cancelChange': ui.changing = false; ui.sel = null; render(); break;
     case 'change': {
       const my = rd(r)[me]; if (ui.sel == null || ui.sel === my.cur) { ui.changing = false; render(); return; }
-      const upd = { cur: ui.sel }; if (r === 1) upd.changes = (my.changes || 0) + 1;
+      const upd = { cur: ui.sel }; if (r === 1 && !isStaff(me)) upd.changes = (my.changes || 0) + 1;
       ui.changing = false; ui.sel = null; await DB.update(gp(`r${r}/${me}`), upd); break;
     }
     case 'arrive': await DB.update(gp(`r${r}/${me}`), { arrived: now() }); break;
@@ -804,6 +813,19 @@ async function onClick(e) {
     case 'loneMove': {
       const opts = moveOptions(me); if (ui.sel == null || !opts.includes(ui.sel)) return;
       const sel = ui.sel; ui.sel = null; await DB.update(gp('r1/' + me), { moved: sel }); toast('합류할 카페로 이동!'); break;
+    }
+    case 'staffMoveOpen': ui.staffMoving = true; render(); break;
+    case 'staffMoveClose': ui.staffMoving = false; render(); break;
+    case 'staffMove': { if (!isStaff(me)) return; ui.staffMoving = false; await DB.update(gp('r1/' + me), { staffMove: +b.dataset.i }); toast('카페를 옮겼어요'); break; }
+    case 'staffTeam': {
+      if (!isStaff(me)) return; const to = +b.dataset.i;
+      await DB.txn(gp('state'), cur => {
+        if (!cur || cur.round !== 2 || cur.phase !== 'choose') return undefined;
+        const groups = cur.groups.map(g => g.filter(id => id !== me)); if (!groups[to]) return undefined; groups[to].push(me);
+        const keep = groups.map((g, i) => g.length ? i : -1).filter(i => i >= 0);
+        return { ...cur, groups: keep.map(i => groups[i]), teamCafe: keep.map(i => (cur.teamCafe || [])[i]), teamCodes: keep.map(i => (cur.teamCodes || [])[i]) };
+      });
+      toast('팀을 옮겼어요'); break;
     }
     case 'startR2': if (!isAdmin()) return; await advance(2, 'choose'); toast('2라운드 시작! 30분'); break;
     case 'teamLink': {
