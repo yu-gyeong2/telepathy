@@ -90,6 +90,12 @@
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:30;max-width:90%;text-align:center}
   .demo{background:#2E6BFF;color:#fff;font-size:12px;padding:6px 10px;text-align:center;margin:0 -16px}
   .sm{font-size:.5em;letter-spacing:0;margin:0 .02em}
+  .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+  .ph{position:relative;aspect-ratio:1;border:2px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;background:var(--soft)}
+  .ph img{width:100%;height:100%;object-fit:cover;display:block}
+  .ph span{position:absolute;left:4px;bottom:4px;font-size:11px;background:rgba(0,0,0,.6);color:#fff;padding:1px 6px;border-radius:6px}
+  .phx{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:12px;cursor:pointer}
+  .upl{display:block;text-align:center;cursor:pointer}
   .center{text-align:center}
   .muted{opacity:.6}
   .divider{height:2px;background:var(--line);margin:18px 0;opacity:.15}
@@ -128,7 +134,7 @@ const params = new URLSearchParams(location.search);
 let CODE = (params.get('g') || '').toUpperCase() || null;
 const SETUP = params.has('setup');
 const store = DEMO ? sessionStorage : localStorage;   // 데모: 탭마다 다른 사람
-let DB = null, G = null, me = null, unsub = null;
+let DB = null, G = null, me = null, unsub = null, PH = {};
 const ui = { sel: null, changing: false, lastIdx: -1, timeKey: '' };
 
 const clone = v => v == null ? null : JSON.parse(JSON.stringify(v));
@@ -237,7 +243,7 @@ async function boot() {
   try { DB = DEMO ? mockDB() : await fbDB(); }
   catch (e) { showError(e); return; }
   $app.addEventListener('click', onClick);
-  $app.addEventListener('change', e => { if (e.target.id === 's_count') onSetupCount(); });
+  $app.addEventListener('change', e => { if (e.target.id === 's_count') onSetupCount(); if (e.target.dataset && e.target.dataset.photo) uploadPhoto(e.target); });
   $modal.addEventListener('click', onClick);
   if (!CODE) return renderHome();
   if (SETUP) {
@@ -250,6 +256,7 @@ async function boot() {
   let loaded = false;
   setTimeout(() => { if (!loaded) showError(new Error('TIMEOUT')); }, 12000);
   unsub = DB.on(gp(), v => { loaded = true; G = v; render(); autoAdvance(); });
+  DB.on('photos/' + CODE, v => { PH = v || {}; if (G && G.config && me) render(); });
   setInterval(tick, 1000);
 }
 
@@ -270,6 +277,35 @@ function majority(vals) {
   const cnt = {}; vals.forEach(v => { if (v != null) cnt[v] = (cnt[v] || 0) + 1; });
   let best = null, bc = -1; Object.keys(cnt).forEach(k => { if (cnt[k] > bc) { bc = cnt[k]; best = +k; } });
   return best;
+}
+function photosFor(round, f) { return Object.entries(PH || {}).map(([k, v]) => ({ k, ...v })).filter(p => p.round === round && (!f || f(p))).sort((a, b) => a.at - b.at); }
+function photoGrid(list) {
+  if (!list.length) return '';
+  return `<div class="pgrid">${list.map(p => `<div class="ph" data-act="photoView" data-k="${p.k}"><img src="${p.data}" alt=""><span>${esc(pname(p.by))}</span>${p.by === me ? `<button class="phx" data-act="photoDel" data-k="${p.k}">✕</button>` : ''}</div>`).join('')}</div>`;
+}
+function photoBox(round, title, sub, list, upload = true) {
+  return `<div class="card"><h3>📸 ${title}</h3>${sub ? `<p class="sub">${sub}</p>` : ''}${photoGrid(list)}
+    ${upload ? `<label class="btn ylw upl">사진 올리기<input type="file" accept="image/*" data-photo="${round}" hidden></label>` : ''}</div>`;
+}
+async function compressImg(file) {
+  const url = URL.createObjectURL(file);
+  const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+  const max = DEMO ? 480 : 1000, sc = Math.min(1, max / Math.max(img.width, img.height));
+  const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+  return c.toDataURL('image/jpeg', DEMO ? 0.6 : 0.72);
+}
+async function uploadPhoto(inp) {
+  const file = inp.files && inp.files[0]; if (!file) return;
+  const round = +inp.dataset.photo; inp.value = ''; toast('사진 올리는 중…');
+  try {
+    const data = await compressImg(file);
+    const rec = { round, by: me, at: now(), data };
+    if (round === 1) rec.cafe = finalCafe(me);
+    if (round === 2) rec.team = S().groups.indexOf(groupOf(me));
+    const id = now().toString(36) + Math.random().toString(36).slice(2, 6);
+    await DB.set('photos/' + CODE + '/' + id, rec); toast('사진 업로드 완료 📸');
+  } catch (e) { toast('사진을 올리지 못했어요. 다시 시도'); }
 }
 function staffMoveBox() {
   if (!isStaff(me) || !(G.r1 || {})[me]) return '';
@@ -521,7 +557,7 @@ function viewR1() {
     return top + `<div class="card"><p class="sub" style="margin:0">내 목적지</p>${optList([cafes[my.cur]], { sel: 0, labels: [my.cur + 1] })}
       <div class="row"><div><p class="sub" style="margin:0">이동 시간</p><div class="timer" data-since="${s.moveAt}">00:00</div></div>
       <div><p class="sub" style="margin:0">권장</p><div class="timer">${C().times.r1Move}분</div></div></div></div>
-      ${my.arrived ? `<div class="banner green"><h3>도착 완료!</h3><p>카페 안에 누가 있는지 확인 👀</p></div>${isStaff(me) ? '<button class="btn sec" data-act="startChange">다른 카페로 옮기기 (진행)</button>' : ''}`
+      ${my.arrived ? `<div class="banner green"><h3>도착 완료!</h3><p>카페 안에 누가 있는지 확인 👀</p></div>${isStaff(me) ? '<button class="btn sec" data-act="startChange">다른 카페로 옮기기 (진행)</button>' : ''}${photoBox(1, '카페 인증샷', '같은 카페에서 만난 친구들과 한 장!', photosFor(1, p => p.cafe === my.cur))}`
         : `<button class="btn grn" data-act="arrive">도착!</button>${isHero ? '' : '<button class="btn sec" data-act="startChange">목적지 바꾸기 (-1점)</button>'}`}
       <div class="card"><div class="progress"><i style="width:${n / act.length * 100}%"></i></div><p class="sub center">${n} / ${act.length}명 도착 · 다 도착하면 결과 공개</p></div>`;
   }
@@ -551,6 +587,8 @@ function viewR1() {
   return `<div class="banner orange"><div class="kicker">1라운드 결과</div><h2>${esc(pname(hero))}의 진짜 취향은<br>「${esc(cafes[hc] ? cafes[hc].name : '?')}」</h2><p>${right}명 정답!</p></div>`
     + mine + staffMoveBox()
     + optList(cafes, { win: hc, tags: i => nameTags(at(i), id => id === hero ? 'hero' : '') + (fin(i).filter(id => r1[id].cur !== i).length ? `<div class="tags">${fin(i).filter(id => r1[id].cur !== i).map(id => `<span class="tag ok">+ ${esc(pname(id))} 합류</span>`).join('')}</div>` : '') })
+    + (photosFor(1).length ? `<div class="card"><h3>📸 카페 인증샷</h3>${cafes.map((c, i) => { const l = photosFor(1, p => p.cafe === i); return l.length ? `<p class="sub" style="margin:10px 0 0"><b>${esc(c.name)}</b></p>${photoGrid(l)}` : ''; }).join('')}</div>` : '')
+    + photoBox(1, '인증샷 추가', '', [], true)
     + scoreMini('r1')
     + (pending.length ? `<div class="card center"><p class="sub" style="margin:0">혼자 온 ${pending.map(id => esc(pname(id))).join(', ')}님이 합류할 카페를 고르는 중…</p></div>` : '')
     + (lone.includes(me) && r1[me].moved == null ? '' : plan.mode === 'allTogether' ? readyBox('업다운 시작!', '모두 준비 누르면 3라운드 번지수 업다운 시작') : readyBox('다음 라운드 준비 완료', '2라운드는 같은 카페에 모인 사람끼리 한 팀!'));
@@ -587,6 +625,7 @@ function viewR2() {
         </div>` : '')
       + `<div class="card"><h3>다른 팀을 만나면</h3><p class="sub">그 팀의 팀 코드 입력. 한 번 만난 팀끼리는 같이 이동.</p>
         <div class="row"><input id="teamcode" inputmode="numeric" maxlength="4" placeholder="4자리" style="font-size:22px;letter-spacing:4px;text-align:center"><button class="btn grn" style="margin:0" data-act="teamLink">확인</button></div></div>`
+      + (myCl.length > 1 ? photoBox(2, '만남 인증샷', '만난 팀끼리 같이 한 장!', photosFor(2, p => myCl.includes(p.team))) : '')
       + `<div class="card"><h3>지금 함께 있는 팀</h3>${myCl.map(i => `<p style="margin:4px 0">✅ ${esc(teamName(i))}</p>`).join('')}
         <div class="progress"><i style="width:${(teams.length - cl.list.length + 1) / teams.length * 100}%"></i></div>
         <p class="sub center">흩어진 무리 ${cl.list.length}개 · 하나가 되면 성공!</p></div>`;
@@ -598,6 +637,7 @@ function viewR2() {
       : `<div class="banner orange"><div class="kicker">2라운드 결과</div><h2>드디어 다 모였다!</h2><p>${took != null ? mmss(took) + ' 걸림. ' : ''}30분은 넘겼지만 다 모였으니 OK 😅</p></div>`)
     + `<div class="card"><h3>팀 구성</h3>${teams.map((gg, i) => `<p style="margin:8px 0"><b>${esc(teamName(i))}</b>: ${gg.map(id => esc(pname(id))).join(', ')}${L[i] ? `<br><span class="note">구조 요청 위치: ${linkify(L[i].text)}</span>` : ''}</p>`).join('')}</div>`
     + (order.length ? `<div class="card"><h3>만난 순서</h3>${order.map(([k, t]) => { const [a, b] = k.split('_').map(Number); return `<p style="margin:4px 0">${mmss(t - s.moveAt)} · ${esc(teamName(a))} + ${esc(teamName(b))}</p>`; }).join('')}</div>` : '')
+    + photoBox(2, '다 모인 기념샷', '모두 모였으니 단체 사진 한 장!', photosFor(2))
     + scoreMini('r2') + readyBox('퀴즈 시작!', `다 모였으니 여기서 바로 번지수 업다운 시작! ${staffIds().map(id => esc(pname(id))).join(', ')}님은 진행이라 제외`);
 }
 
@@ -640,7 +680,8 @@ function viewDone() {
       <a class="btn sec" href="https://map.naver.com/p/search/${encodeURIComponent(addr)}" target="_blank" rel="noopener">네이버 지도에서 보기</a>
       <a class="btn sec" href="https://map.kakao.com/?q=${encodeURIComponent(addr)}" target="_blank" rel="noopener">카카오맵에서 보기</a></div>`
     + `<div class="card"><h3>업다운 결과</h3>${rank.map(({ id, d }) => `<p style="margin:6px 0">${esc(pname(id))} · ${d.won ? `${d.used}번 만에 정답 <b>+${d.pts}</b>` : '실패 0점'} <span class="note">${d.gs.map(g => g.n).join(' → ')}</span></p>`).join('')}</div>`
-    + finalBoard();
+    + finalBoard()
+    + (Object.keys(PH || {}).length ? `<div class="card"><h3>📸 오늘의 앨범</h3>${[1, 2].map(r => { const l = photosFor(r); return l.length ? `<p class="sub" style="margin:10px 0 0"><b>${r}라운드</b></p>${photoGrid(l)}` : ''; }).join('')}<p class="note">사진을 누르면 크게 보여요. 길게 눌러서 저장</p></div>` : '');
 }
 
 /* ----- 점수 ----- */
@@ -814,6 +855,8 @@ async function onClick(e) {
       const opts = moveOptions(me); if (ui.sel == null || !opts.includes(ui.sel)) return;
       const sel = ui.sel; ui.sel = null; await DB.update(gp('r1/' + me), { moved: sel }); toast('합류할 카페로 이동!'); break;
     }
+    case 'photoView': { const p = (PH || {})[b.dataset.k]; if (p) openModal(`<img src="${p.data}" style="width:100%;border-radius:12px;border:2px solid var(--line)"><p class="sub">${esc(pname(p.by))} · ${p.round}라운드 · 길게 눌러서 저장</p><button class="btn sec" data-act="close">닫기</button>`); break; }
+    case 'photoDel': { e.stopPropagation(); const p = (PH || {})[b.dataset.k]; if (p && p.by === me) { await DB.set('photos/' + CODE + '/' + b.dataset.k, null); toast('사진 삭제'); } break; }
     case 'staffMoveOpen': ui.staffMoving = true; render(); break;
     case 'staffMoveClose': ui.staffMoving = false; render(); break;
     case 'staffMove': { if (!isStaff(me)) return; ui.staffMoving = false; await DB.update(gp('r1/' + me), { staffMove: +b.dataset.i }); toast('카페를 옮겼어요'); break; }
@@ -857,7 +900,7 @@ async function onClick(e) {
     case 'forceReveal': closeModal(); await advance(3, 'quiz'); break;
     case 'reset':
       if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = '정말 처음부터? 한 번 더 누르기'; return; }
-      closeModal(); await DB.update(gp(), { state: { round: 0, phase: 'lobby' }, r1: null, r2loc: null, r2links: null, quiz: null }); break;
+      closeModal(); await DB.update(gp(), { state: { round: 0, phase: 'lobby' }, r1: null, r2loc: null, r2links: null, quiz: null }); await DB.set('photos/' + CODE, null); break;
     case 'close': closeModal(); break;
     case 'copy': try { await navigator.clipboard.writeText(b.dataset.t); toast('복사 완료'); } catch (er) { toast('길게 눌러 직접 복사'); } break;
     case 'addQ': document.getElementById('quizlist').insertAdjacentHTML('beforeend', window.__quizRow({ q: '', a: '', piece: '', hint: '' }, document.querySelectorAll('[data-quiz]').length)); break;
